@@ -1,5 +1,6 @@
 import React from "react";
 import { Providers } from "./providers";
+import Navbar from "@components/Navbar/Navbar";
 
 export const metadata = {
   title: "Reddit",
@@ -11,6 +12,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
     <html lang="en">
       <body>
         <Providers>
+          <Navbar />
           <main>{children}</main>
         </Providers>
       </body>
