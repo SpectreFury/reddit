@@ -19,6 +19,15 @@ import {
 } from "@chakra-ui/react";
 import { HiLockClosed } from "react-icons/hi";
 import { BsFillPersonFill, BsFillEyeFill } from "react-icons/bs";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  runTransaction,
+} from "firebase/firestore";
+import { firestore, auth } from "../../../firebase/firebaseConfig";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 type CreateCommunityModalProps = {
   open: boolean;
@@ -32,6 +41,9 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
   const [communityName, setCommunityName] = useState("");
   const [charsRemaining, setCharsRemaining] = useState(21);
   const [communityType, setCommunityType] = useState("public");
+  const [error, setError] = useState("");
+  const [user] = useAuthState(auth);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.value.length > 21) return;
@@ -44,6 +56,50 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setCommunityType(event.target.name);
+  };
+
+  const handleCreateCommunity = async () => {
+    if (error) setError("");
+    const format = /[ `!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~]/;
+
+    if (format.test(communityName) || communityName.length < 4) {
+      setError(
+        "Community names must be between 4-21 characters, and can only contain letters, numbers,"
+      );
+    }
+
+    setLoading(true);
+
+    try {
+      const communityDocRef = doc(firestore, "communities", communityName);
+
+      await runTransaction(firestore, async (transaction) => {
+        const communityDoc = await transaction.get(communityDocRef);
+
+        if (communityDoc.exists()) {
+          throw new Error(`Sorry, r/${communityName} is taken. Try another.`);
+        }
+        transaction.set(communityDocRef, {
+          creatorId: user?.uid,
+          createAt: serverTimestamp(),
+          numberOfMembers: 1,
+          privacyType: communityType,
+        });
+
+        transaction.set(
+          doc(firestore, `users/${user?.uid}/communitySnippets`, communityName),
+          {
+            communityId: communityName,
+            isModerator: true,
+          }
+        );
+      });
+    } catch (error: any) {
+      console.log("handleCreateCommunity error", error);
+      setError(error.message);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -91,6 +147,9 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
               >
                 {charsRemaining} Characters remaining
               </Text>
+              <Text fontSize="9pt" color="red" pt={1}>
+                {error}
+              </Text>
               <Box mt={4} mb={4}>
                 <Text fontWeight={600} fontSize={15}>
                   Community Type
@@ -112,8 +171,8 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
                     </Flex>
                   </Checkbox>
                   <Checkbox
-                    name="public"
-                    isChecked={communityType === "public"}
+                    name="restricted"
+                    isChecked={communityType === "restricted"}
                     onChange={onCommunityTypeChange}
                   >
                     <Flex>
@@ -128,8 +187,8 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
                     </Flex>
                   </Checkbox>
                   <Checkbox
-                    name="public"
-                    isChecked={communityType === "public"}
+                    name="private"
+                    isChecked={communityType === "private"}
                     onChange={onCommunityTypeChange}
                   >
                     <Flex>
@@ -149,11 +208,20 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
           </Box>
 
           <ModalFooter bg="gray.100" borderRadius="0px 0px 10px 10px">
-            <Button variant="outline" height="30px" mr={2} onClick={handleClose}>
-              Close
+            <Button
+              variant="outline"
+              height="30px"
+              mr={2}
+              onClick={handleClose}
+            >
+              Cancel
             </Button>
-            <Button height="30px" onClick={() => {}}>
-              Secondary Action
+            <Button
+              height="30px"
+              onClick={handleCreateCommunity}
+              isLoading={loading}
+            >
+              Create Community
             </Button>
           </ModalFooter>
         </ModalContent>
