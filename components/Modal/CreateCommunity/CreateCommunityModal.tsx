@@ -69,7 +69,6 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
     }
 
     setLoading(true);
-
     try {
       const communityDocRef = doc(firestore, "communities", communityName);
 
@@ -81,7 +80,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
         }
         transaction.set(communityDocRef, {
           creatorId: user?.uid,
-          createAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
           numberOfMembers: 1,
           privacyType: communityType,
         });

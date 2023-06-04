@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Community } from "../../atoms/communitiesAtom";
 import { Flex, Box, Icon, Image, Text, Button } from "@chakra-ui/react";
 import { FaReddit } from "react-icons/fa";
 import useCommunityData from "@hooks/useCommunityData";
+import { communityState } from "../../atoms/communitiesAtom";
+import { useSetRecoilState } from "recoil";
 
 type HeaderProps = {
   communityData: Community;
@@ -16,13 +18,31 @@ const Header: React.FC<HeaderProps> = ({ communityData }) => {
   const isJoined = !!communityStateValue.mySnippets.find(
     (item) => item.communityId === communityData.id
   );
+
+  const setCommunityStateValue = useSetRecoilState(communityState);
+
+  useEffect(() => {
+    setCommunityStateValue((prev) => ({
+      ...prev,
+      currentCommunity: communityData,
+    }));
+  }, []);
   return (
     <Flex direction="column" width="100%" height="146px">
       <Box height="50%" bg="blue.400" />
       <Flex justify="center" bg="white" flexGrow={1}>
         <Flex width="95%" maxWidth="860px" border="1px solid red">
-          {communityData.imageURL ? (
-            <Image />
+          {communityStateValue.currentCommunity?.imageURL ? (
+            <Image
+              src={communityStateValue.currentCommunity.imageURL}
+              borderRadius="full"
+              boxSize="66px"
+              alt="Dan Abramov"
+              position="relative"
+              top={-4}
+              color="blue.500"
+              border="4px solid white"
+            />
           ) : (
             <Icon
               as={FaReddit}

@@ -5,6 +5,11 @@ import CommunityNotFound from "@components/Community/NotFound";
 import Header from "@components/Community/Header";
 import PageContent from "@components/Layout/PageContent";
 import safeJsonStringify from "safe-json-stringify";
+import CreatePostLink from "@components/Community/CreatePostLink";
+import Posts from "@components/Posts/Posts";
+import { useSetRecoilState } from "recoil";
+import { communityState } from "../../../atoms/communitiesAtom";
+import About from "@components/Community/About";
 
 const CommunityPage = async ({ params }: { params: any }) => {
   const communityDocRef = doc(firestore, "communities", params.communityName);
@@ -28,10 +33,11 @@ const CommunityPage = async ({ params }: { params: any }) => {
       <Header communityData={communityData} />
       <PageContent>
         <React.Fragment>
-          <div>LHS</div>
+          <CreatePostLink />
+          <Posts communityData={communityData} />
         </React.Fragment>
         <React.Fragment>
-          <div>RHS</div>
+          <About communityData={communityData} />
         </React.Fragment>
       </PageContent>
     </React.Fragment>
