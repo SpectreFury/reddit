@@ -12,6 +12,8 @@ import { Post } from "../../../../../atoms/postsAtom";
 import About from "@components/Community/About";
 import { communityState } from "../../../../../atoms/communitiesAtom";
 import { useRecoilValue } from "recoil";
+import Comments from "@components/Posts/Comments/Comments";
+import { User } from "firebase/auth";
 
 const PostPage = () => {
   const { postStateValue, setPostStateValue, onDeletePost, onVote } =
@@ -56,6 +58,11 @@ const PostPage = () => {
             userIsCreator={user?.uid === postStateValue.selectedPost?.creatorId}
           />
         )}
+        <Comments
+          user={user as User}
+          selectedPost={postStateValue.selectedPost}
+          communityId={postStateValue.selectedPost?.communityId as string}
+        />
       </React.Fragment>
       <React.Fragment>
         {communityStateValue.currentCommunity && (

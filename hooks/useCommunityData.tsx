@@ -51,11 +51,21 @@ const useCommunityData = () => {
       const newSnippet: CommunitySnippet = {
         communityId: communityData.id,
         imageURL: communityData.imageURL || "",
+        isModerator: user?.uid === communityData.creatorId,
       };
 
-      batch.set(doc(firestore, `users/${user?.uid}/communitySnippets`), {
-        newSnippet,
-      });
+      batch.set(
+        doc(
+          firestore,
+          `users/${user?.uid}/communitySnippets`,
+          communityData?.id
+        ),
+        {
+          newSnippet,
+        }
+      );
+
+      console.log(newSnippet);
 
       batch.update(doc(firestore, "communities", communityData.id), {
         numberOfMembers: increment(1),
@@ -112,6 +122,7 @@ const useCommunityData = () => {
       setCommunityStateValue((prev) => ({
         ...prev,
         mySnippets: snippets as CommunitySnippet[],
+        snippetsFetched: true,
       }));
     } catch (error: any) {
       console.log("getMySnippets error", error);
@@ -148,6 +159,7 @@ const useCommunityData = () => {
       setCommunityStateValue((prev) => ({
         ...prev,
         mySnippets: [],
+        snippetsFetched: false,
       }));
       return;
     }

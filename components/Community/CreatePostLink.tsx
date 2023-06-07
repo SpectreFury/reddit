@@ -8,6 +8,11 @@ import React from "react";
 import { BsLink45Deg } from "react-icons/bs";
 import { FaReddit } from "react-icons/fa";
 import { IoImageOutline } from "react-icons/io5";
+import { auth } from "../../firebase/firebaseConfig";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { authModalState } from "../../atoms/authModalAtom";
+import { useSetRecoilState } from "recoil";
+import useDirectory from "@hooks/useDirectory";
 
 type CreatePostProps = {};
 
@@ -15,13 +20,24 @@ const CreatePostLink: React.FC<CreatePostProps> = () => {
   const router = useRouter();
   const params = useParams();
 
+  const [user] = useAuthState(auth);
+  const setAuthModalState = useSetRecoilState(authModalState);
+  const { toggleMenuOpen } = useDirectory();
+
   const onClick = () => {
+    if (!user) {
+      setAuthModalState({ open: true, view: "login" });
+    }
+
     // Could check for user to open auth modal before redirecting to submit
-    const { communityName } = params; 
+    const { communityName } = params;
+
     if (communityName) {
       router.push(`/r/${params.communityName}/submit`);
       return;
     }
+
+    toggleMenuOpen();
     // Open directory menu to select community to post to
   };
   return (

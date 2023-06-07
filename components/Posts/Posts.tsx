@@ -55,7 +55,7 @@ const Posts: React.FC<PostsProp> = ({ communityData }) => {
       ...prev,
       currentCommunity: communityData,
     }));
-  }, []);
+  }, [communityData]);
 
   return (
     <React.Fragment>
